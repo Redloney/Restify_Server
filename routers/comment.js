@@ -1,7 +1,6 @@
 const errors = require('restify-errors');
 
 const Comment = require('../models/Comment')
-const User = require('../models/User')
 
 module.exports = server => {
 
@@ -29,11 +28,16 @@ module.exports = server => {
             //   }
             // ])
 
-            const comments = await Comment.find().populate({
-                path: 'user',
-                model: 'User',
-                select: '_id nickname email pageUrl createdAt'
-            })
+            const comments = await Comment.find().populate(['user', 'reply'])
+            // const comments = await Comment.find().populate({
+            //     path: 'user',
+            //     model: 'User',
+            //     select: '_id nickname email pageUrl createdAt',
+            //     populate: {
+            //         path: 'replys',
+            //         model: 'Reply',
+            //     }
+            // })
 
             res.send(comments)
             next()
@@ -51,25 +55,12 @@ module.exports = server => {
         try {
             const comment = new Comment({ user, content })
             const feedback = await comment.save()
+            console.log(feedback)
             res.send({ status: 201, message: '留言成功!' })
         } catch (err) {
             res.send(err)
         }
     })
-
-    // server.post('comment/reply/insert', async (req, res, next) => {
-    //   if (!req.is('application/json')) {
-    //     return next(new errors.InvalidContentError('参数不是json类型'))
-    //   }
-    //   const { user_id, comment_id, content } = req.body
-    //   try {
-    //     const userinfo = User.findOne({ user_id })
-    //     const comment = Comment.findByIdAndUpdate(comment_id, { })
-    //     res.send({ status: 200, message: '留言成功!' })
-    //   } catch (err) {
-    //     res.send(err)
-    //   }
-    // })
 
     // 删除评论
     server.post('/comment/delete', async (req, res, next) => {

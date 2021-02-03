@@ -3,10 +3,15 @@ const timestamp = require('mongoose-timestamp')
 
 const { ObjectId } = mongoose.SchemaTypes
 
+const ChildrenSchema = new mongoose.Schema({
+
+})
+
 const CommentSchema = new mongoose.Schema({
     user: {
         type: ObjectId,
-        ref: 'users'
+        user: true,
+        ref: 'User'
     },
     content: {
         type: String,
@@ -15,7 +20,13 @@ const CommentSchema = new mongoose.Schema({
     },
     replys: {
         type: ObjectId,
-        ref: 'reply'
+        ref: 'Reply'
+    },
+    children: [ChildrenSchema],
+    isDel: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 })
 
