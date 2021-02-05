@@ -1,80 +1,114 @@
-const errors = require('restify-errors');
-const jwt = require('jsonwebtoken')
-
-const User = require('../models/User')
-
-const config = require('../config')
-const login = require('../utils/login');
+const errors = require('restify-errors')
+const User = require('../db/user')
+const { getToken } = require('../utils/token')
 
 module.exports = server => {
-
     // 获取用户列表
-    server.get('/users', async (req, res, next) => {
+    server.get('/api/user/list', async (req, res, next) => {
         try {
-            const users = await User.find({})
-            res.send(users)
+            const { page, size, ...info } = req.query
+            const list = await User.query(info, { page, size })
+            res.send({
+                list: list ? list : [],
+                count: list.length,
+                code: 200,
+            })
             next()
         } catch (error) {
             console.log(new errors.InvalidContentError(error));
         }
     })
-
-    // 检查用户是否存在 by nickname
-    server.post('/user/exist', async (req, res, next) => {
-        // check for json
-        if (!req.is('application/json')) {
-            return next(new errors.InvalidContentError('参数不是json类型'))
-        }
-        const { nickname } = req.body
+    // 获取用户 by id
+    server.get('/api/user/info/:id', async (req, res, next) => {
         try {
-            const user = await User.find({ nickname })
+            const _id = req.params.id
+            const user = await User.queryById(_id)
             res.send(user)
             next()
         } catch (error) {
-            return next(new errors.InvalidContentError(error.message))
+            console.log(new errors.InvalidContentError(error));
         }
-
     })
-
-    // 检查用户是否存在 by email
-    server.post('/email/exist', async (req, res, next) => {
-        // check for json
-        if (!req.is('application/json')) {
-            return next(new errors.InvalidContentError('参数不是json类型'))
-        }
-        const { email } = req.body
+    // 创建用户
+    server.post('/api/user/insert', async (req, res, next) => {
+        if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
         try {
-            const user = await User.find({ email })
-            res.send(user)
-            next()
-        } catch (error) {
-            return next(new errors.InvalidContentError(error.message))
-        }
-
-    })
-
-
-    // 登录 || 添加用户 && return token 
-    server.post('/user/login', async (req, res, next) => {
-        if (!req.is('application/json')) {
-            return next(new errors.InvalidContentError('expect content-type be application/json'))
-        }
-        const { nickname, email, pageUrl, address } = req.body
-        try {
-            const feedback = await login.UserLogin(nickname, email, pageUrl, address)
-            console.log('feedback', feedback)
-            if (feedback.status === 200) {
-                const token = jwt.sign(feedback.userinfo.toJSON(), config.JWT_SECRET, { expiresIn: '3m' })
-                const { iat, exp } = jwt.decode(token)
-                res.send({ iat, exp, token, ...feedback })
-            } else {
-                res.send(feedback)
-            }
+            const { info } = req.body
+            const result = await User.create(info)
+            res.send(result)
             next()
         } catch (err) {
-            return next(new errors.InvalidContentError(err.message))
+            console.warn(err);
         }
     })
+    // 验证用户信息
+    server.post('/api/user/validate', async (req, res, next) => {
+        if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
+        try {
+            const info = req.body
+            const users = await User.query(info)
+            users && users[0] ?
+                res.send({
+                    code: 200,
+                    count: users.length
+                }) :
+                res.send({
+                    code: 0
+                })
+            next()
+        } catch (err) {
+            res.send(err)
+        }
+    })
+    // 用户登录
+    server.post('/api/user/login', async (req, res, next) => {
+        try {
+            if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type be application/json'))
+            const { nickname, email, weburl, address } = req.body
+            const username = await User.query({ nickname })
+            const useremail = await User.query({ email })
+            const userinfo = await User.query({ nickname, email })
 
+            // 若用户不存在
+            if (!username[0] && !useremail[0] && !userinfo[0]) {
+                const user = await User.create({ nickname, email, weburl, address })
+                res.send({
+                    data: {
+                        msg: '注册成功！',
+                        user,
+                        ...getToken(userinfo[0])
+                    },
+                    code: 201
+                })
+                return
+            }
 
+            // 判断
+            username[0] ? useremail[0] ? res.send({
+                data: {
+                    msg: '登录成功！',
+                    user: userinfo[0],
+                    ...getToken(userinfo[0])
+                },
+                code: 200
+            }) : res.send({
+                msg: "邮箱不匹配！",
+                code: 0
+            }) : res.send({
+                msg: "用户不匹配！",
+                code: 0
+            })
+
+            next()
+        } catch (err) {
+            res.send(err)
+        }
+    })
+    // 用户注销
+    // server.post('/api/user/logout',async (req, res, next) => {
+    //     try {
+    //     } catch (err) {
+    //         res.send(err)
+    //     }
+    // })
 }

@@ -1,22 +1,19 @@
-const mongoose = require('mongoose')
+const mongoose = require('../db/db')
 const timestamp = require('mongoose-timestamp')
 
 const UserSchema = new mongoose.Schema({
     nickname: {
         type: String,
         unique: true,
-        required: true,
-        trim: true
+        required: true
     },
     email: {
         type: String,
         unique: true,
-        required: true,
-        trim: true
+        required: true
     },
-    pageUrl: {
-        type: String,
-        trim: true
+    weburl: {
+        type: String
     },
     address: {
         type: Object

@@ -1,26 +1,39 @@
 const mongoose = require('mongoose')
 const timestamp = require('mongoose-timestamp')
+const { Schema } = mongoose
 
-const { ObjectId } = mongoose.SchemaTypes
-
-const ChildrenSchema = new mongoose.Schema({
-
-})
-
-const CommentSchema = new mongoose.Schema({
-    user: {
-        type: ObjectId,
-        user: true,
-        ref: 'User'
+const ChildrenSchema = new Schema({
+    userinfo: {
+        type: Object,
+        required: true
     },
     content: {
         type: String,
         required: true,
-        trim: true
     },
-    replys: {
-        type: ObjectId,
-        ref: 'Reply'
+    address: {
+        type: Object,
+        required: true
+    },
+    isDel: {
+        type: Boolean,
+        required: true,
+        default: false
+    }
+})
+
+const CommentSchema = new Schema({
+    userinfo: {
+        type: Object,
+        required: true
+    },
+    content: {
+        type: String,
+        required: true,
+    },
+    address: {
+        type: Object,
+        required: true
     },
     children: [ChildrenSchema],
     isDel: {
