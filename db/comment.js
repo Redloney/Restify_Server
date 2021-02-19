@@ -84,7 +84,7 @@ class Mongodb {
                 })
         })
     }
-    // 
+
     queryAll(obj, keys) {
         const { page = 0, size = 15, sorter = 'createdAt_descend' } = keys ? keys : initKeys
         const sortKey = sorter.split('_')[0];
@@ -107,29 +107,31 @@ class Mongodb {
     }
 
     create(obj) {
-        const comment = new Comment(obj)
         return new Promise((resolve, reject) => {
+            console.log(1)
+            console.log(obj)
+            const comment = new Comment(obj)
             comment.save((err, res) => {
                 if (err) reject(err)
                 resolve(res)
             })
         })
     }
-
-    delete(parentId, commentId) {
+    // fId 父级ID 
+    delete(fId, _id) {
         return new Promise((resolve, reject) => {
             let result
-            parentId == commentId ?
-                result = Comment.findByIdAndUpdate(parentId, { isDel: true }) :
+            fId == _id ?
+                result = Comment.findByIdAndUpdate(fId, { isDel: true }) :
                 result = Comment.findOneAndUpdate({
-                    _id: parentId,
-                    children: { $elemMatch: { _id: commentId } }
+                    _id: fId,
+                    children: { $elemMatch: { _id } }
+                }, {
+                    $set: { "children.$.isDel": true }
                 }, {
                     upsert: true,
                     new: true,
                     fields: _filter
-                }, {
-                    $set: { "children.$.isDel": true }
                 })
             result.exec((err, res) => {
                 if (err) reject(err)
@@ -138,11 +140,11 @@ class Mongodb {
         })
     }
 
-    update(_id, data) {
+    update(_id, obj) {
         return new Promise((resolve, reject) => {
             Comment.findByIdAndUpdate(_id, {
                     $push: {
-                        children: { ...data }
+                        children: { ...obj }
                     }
                 }, {
                     upsert: true,

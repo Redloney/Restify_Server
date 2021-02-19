@@ -45,8 +45,8 @@ module.exports = server => {
     server.post('/api/user/validate', async (req, res, next) => {
         if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
         try {
-            const info = req.body
-            const users = await User.query(info)
+            const validate = req.body
+            const users = await User.query(validate)
             users && users[0] ?
                 res.send({
                     code: 200,
@@ -62,22 +62,20 @@ module.exports = server => {
     })
     // 用户登录
     server.post('/api/user/login', async (req, res, next) => {
+        if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type be application/json'))
         try {
-            if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type be application/json'))
             const { nickname, email, weburl, address } = req.body
             const username = await User.query({ nickname })
             const useremail = await User.query({ email })
             const userinfo = await User.query({ nickname, email })
 
             // 若用户不存在
-            if (!username[0] && !useremail[0] && !userinfo[0]) {
+            if (!Boolean(username[0] && useremail[0])) {
                 const user = await User.create({ nickname, email, weburl, address })
                 res.send({
-                    data: {
-                        msg: '注册成功！',
-                        user,
-                        ...getToken(userinfo[0])
-                    },
+                    msg: '注册成功！',
+                    user,
+                    ...getToken(user),
                     code: 201
                 })
                 return
@@ -85,11 +83,9 @@ module.exports = server => {
 
             // 判断
             username[0] ? useremail[0] ? res.send({
-                data: {
-                    msg: '登录成功！',
-                    user: userinfo[0],
-                    ...getToken(userinfo[0])
-                },
+                msg: '登录成功！',
+                user: userinfo[0],
+                ...getToken(userinfo[0]),
                 code: 200
             }) : res.send({
                 msg: "邮箱不匹配！",
@@ -101,14 +97,11 @@ module.exports = server => {
 
             next()
         } catch (err) {
-            res.send(err)
+            console.log(err)
+            res.send({
+                msg: "登录错误！",
+                code: 0
+            })
         }
     })
-    // 用户注销
-    // server.post('/api/user/logout',async (req, res, next) => {
-    //     try {
-    //     } catch (err) {
-    //         res.send(err)
-    //     }
-    // })
 }

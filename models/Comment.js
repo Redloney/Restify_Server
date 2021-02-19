@@ -44,5 +44,7 @@ const CommentSchema = new Schema({
 })
 
 CommentSchema.plugin(timestamp)
+ChildrenSchema.plugin(timestamp)
+
 const Comment = mongoose.model('Comment', CommentSchema, 'comment')
 module.exports = Comment
