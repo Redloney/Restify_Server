@@ -11,18 +11,15 @@ mongoose.connect(Mongo_Url, {
 })
 
 mongoose.connection.on('connected', () => {
-    console.log('')
     console.log('Mongoose connection connected')
     // console.log('Mongoose connection open to ' + config.MONGODB_URL)
 })
 
 mongoose.connection.on('error', (err) => {
-    console.log('')
     console.log('Mongoose connection error: ' + err)
 })
 
 mongoose.connection.on('disconnected', () => {
-    console.log('')
     console.log('Mongoose connection disconnected')
 })
 

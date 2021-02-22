@@ -6,7 +6,7 @@ const dayjs = require('dayjs')
 
 module.exports = server => {
     // 获取所有评论
-    server.get('/api/comment/allComments', async (req, res, next) => {
+    server.get('/comment/allComments', async (req, res, next) => {
         try {
             let { page, size, sorter, ...obj } = req.query
             const comments = await Comment.queryAll(obj, { page, size, sorter })
@@ -23,7 +23,7 @@ module.exports = server => {
         }
     })
     // 获取所有未删除评论
-    server.get('/api/comment/comments', async (req, res, next) => {
+    server.get('/comment/comments', async (req, res, next) => {
         const { page, size, sorter, ...obj } = req.query
         const comments = await Comment.query(obj, { page, size, sorter })
         const count = await Comment.count({})
@@ -37,7 +37,7 @@ module.exports = server => {
         next()
     })
     // 添加评论
-    server.post('/api/comment/insert', async (req, res, next) => {
+    server.post('/comment/insert', async (req, res, next) => {
         if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
         try {
             let { _id, content, replyId, address } = req.body
@@ -63,7 +63,7 @@ module.exports = server => {
         }
     })
     // 删除评论 
-    server.post('/api/comment/delete', async (req, res, next) => {
+    server.post('/comment/delete', async (req, res, next) => {
         if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
         try {
             const { uId, _id, fId } = req.body

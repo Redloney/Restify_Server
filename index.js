@@ -9,9 +9,9 @@ const comment = require('./routers/comment')
 server.use(restify.plugins.bodyParser())
 server.use(restify.plugins.queryParser())
 
-server.listen(8082, () => {
+server.listen(8088, () => {
     user(server)
     comment(server)
-    console.log('Restify Server 已经运行在 8082 端口')
-    console.log('http://localhost:8082')
+    console.log('Restify Server 已经运行在 8088 端口')
+    console.log('http://localhost:8088')
 })

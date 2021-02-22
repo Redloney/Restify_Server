@@ -4,7 +4,7 @@ const { getToken } = require('../utils/token')
 
 module.exports = server => {
     // 获取用户列表
-    server.get('/api/user/list', async (req, res, next) => {
+    server.get('/user/list', async (req, res, next) => {
         try {
             const { page, size, ...info } = req.query
             const list = await User.query(info, { page, size })
@@ -19,7 +19,7 @@ module.exports = server => {
         }
     })
     // 获取用户 by id
-    server.get('/api/user/info/:id', async (req, res, next) => {
+    server.get('/user/info/:id', async (req, res, next) => {
         try {
             const _id = req.params.id
             const user = await User.queryById(_id)
@@ -30,7 +30,7 @@ module.exports = server => {
         }
     })
     // 创建用户
-    server.post('/api/user/insert', async (req, res, next) => {
+    server.post('/user/insert', async (req, res, next) => {
         if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
         try {
             const { info } = req.body
@@ -42,7 +42,7 @@ module.exports = server => {
         }
     })
     // 验证用户信息
-    server.post('/api/user/validate', async (req, res, next) => {
+    server.post('/user/validate', async (req, res, next) => {
         if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type as application/json'))
         try {
             const validate = req.body
@@ -61,7 +61,7 @@ module.exports = server => {
         }
     })
     // 用户登录
-    server.post('/api/user/login', async (req, res, next) => {
+    server.post('/user/login', async (req, res, next) => {
         if (!req.is('application/json')) return next(new errors.InvalidContentError('expect content-type be application/json'))
         try {
             const { nickname, email, weburl, address } = req.body
